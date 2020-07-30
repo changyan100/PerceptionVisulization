@@ -25,6 +25,8 @@ from cv_bridge import CvBridge, CvBridgeError
 import cv2 as cv
 from PIL import Image
 
+from visulization.msg import IntList
+
 # Datamatrix = 0
 # cv_image = []
 

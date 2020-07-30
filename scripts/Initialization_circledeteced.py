@@ -233,6 +233,7 @@ def callback(data):
 
       cv.namedWindow("image_raw", cv.WINDOW_NORMAL)
       cv.imshow("image_raw", cv_image) 
+      cv.waitKey(3)
       print("press Ctrl+C to end initialization")
 
 
