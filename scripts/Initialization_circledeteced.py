@@ -39,7 +39,9 @@ globalflag = 0
 class Initilization:
 
   def __init__(self, cv_image, circlenum):
+
     global globalflag
+
     print("--------------Initilization starts............")
     np.set_printoptions(suppress=True)
     # cv_image = cv.imread("image_raw_fibers.png")
@@ -211,6 +213,7 @@ class Initilization:
 
 
 def callback(data):
+
     global globalflag
     bridge = CvBridge()
     try:
@@ -233,7 +236,7 @@ def callback(data):
       print("press Ctrl+C to end initialization")
 
 
-      
+ 
 def image_subscriber():
 
     # In ROS, nodes are uniquely named. If two nodes with the same

@@ -28,13 +28,16 @@ from numpy import empty
 
 
 def callback(data):
+
     # Datamatrix = data.data
+
     bridge = CvBridge()
     # rospy.loginfo("I heard %0.6f", data.data)
     try:
       # cv_image = bridge.imgmsg_to_cv2(data, "mono8")
       cv_image = bridge.imgmsg_to_cv2(data, desired_encoding='passthrough') # output cv:mat
       gray = cv_image
+
 
     #   ##### initilization ##################excute only once in the beginning#################33
     #   ##### -binarization 
@@ -95,8 +98,13 @@ def callback(data):
 
     # cv_imageBGR = cv.cvtColor(cv_image, cv.COLOR_GRAY2BGR ) 
 
+
     except CvBridgeError as e:
       print(e)
+
+
+    cv_imageBGR = cv.cvtColor(cv_image, cv.COLOR_GRAY2BGR ) 
+
 
     cv.namedWindow("image_raw", cv.WINDOW_NORMAL)
     cv.imshow("image_raw", cv_image)  
@@ -135,6 +143,7 @@ def callback(data):
     #   #按照连通区域的索引来打上标签
     #   cv.putText(cv_imageBGR, str(i+1), (stat[0], stat[1] + 25), cv.FONT_HERSHEY_SIMPLEX, 0.8, (255, 25, 25), 2)
     # cv.imshow("Image window", cv_imageBGR)
+
     
     # # Draw detected blobs as red circles.
     # # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the circle corresponds to the size of blob
@@ -142,8 +151,6 @@ def callback(data):
     # # Show keypoints
     # cv.namedWindow("Keypoints", cv.WINDOW_NORMAL)
     # cv.imshow("Keypoints", im_with_keypoints)
- 
-
 
     # plt.subplot(111)
     # plt.imshow(cv_image) 
