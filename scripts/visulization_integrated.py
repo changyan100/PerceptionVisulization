@@ -25,8 +25,8 @@ from cv_bridge import CvBridge, CvBridgeError
 import cv2 as cv
 from PIL import Image
 
-Datamatrix = 0
-cv_image = []
+# Datamatrix = 0
+# cv_image = []
 
 def draw_figure(canvas_plot, figure):
     figure_canvas_agg = FigureCanvasTkAgg(figure, canvas_plot)
@@ -118,6 +118,7 @@ def callback(data):
       cv_image = bridge.imgmsg_to_cv2(data, desired_encoding='passthrough') # output cv:mat
     except CvBridgeError as e:
       print(e)
+    cv.namedWindow("Image window", cv.WINDOW_NORMAL)
     cv.imshow("Image window", cv_image)
     cv.waitKey(3)
 
@@ -129,8 +130,15 @@ def listener():
     # anonymous=True flag means that rospy will choose a unique
     # name for our 'listener' node so that multiple listeners can
     # run simultaneously.
-    print("listener starts")
-    rospy.init_node('listener', anonymous=True)
+    # np.set_printoptions(suppress=True)
+    # print("listener starts")
+    # filename = '2020-07-29-15_13_05 detected circle stats.csv'
+    # data_init = np.loadtxt(filename,delimiter=",", skiprows=1)
+    # print("file name is ", filename)
+    # print("data read from the initialization file is:")
+    # print(data_init)
+
+    rospy.init_node('GUI_image_listener', anonymous=True)
     rospy.Subscriber("image_raw", image_msg, callback)
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()
