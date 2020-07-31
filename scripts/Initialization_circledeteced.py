@@ -35,12 +35,18 @@ import time
 
 
 globalflag = 0
+circlenum = 4
+low_th = 20  # filter too small spot by the area size
+high_th = 600 # filter too large connected area by the area size
+
 
 class Initilization:
 
   def __init__(self, cv_image, circlenum):
 
     global globalflag
+    global low_th  # filter too small spot by the area size
+    global high_th # filter too large connected area by the area size
 
     print("--------------Initilization starts............")
     np.set_printoptions(suppress=True)
@@ -88,7 +94,7 @@ class Initilization:
     # circlenum = 24  #----------------------------defind circle number here
     circle_dected = empty([circlenum,3])
     for i, stat in enumerate(stats):
-      if stat[4]>150 and stat[4]<500:
+      if stat[4]>low_th and stat[4]<high_th:
         circle_dected[num,0] = int(stat[0] + stat[2]/2) # center_x
         circle_dected[num,1] = int(stat[1] + stat[3]/2) # center_y
         circle_dected[num,2] = int(stat[2]/2)+1 if stat[2]>stat[3] else int(stat[3]/2)+1 # radius
@@ -215,6 +221,7 @@ class Initilization:
 def callback(data):
 
     global globalflag
+    global circlenum
     bridge = CvBridge()
     try:
         # cv_image = bridge.imgmsg_to_cv2(data, "mono8")
@@ -224,7 +231,7 @@ def callback(data):
         print(e)
 
     if globalflag ==0:
-      circlenum = 25   ###########update circle num here!!!!!!!!
+      # circlenum = 25   ###########update circle num here!!!!!!!!
      
       # rospy.loginfo("I heard %0.6f", data.data)
       Init = Initilization(cv_image,circlenum)

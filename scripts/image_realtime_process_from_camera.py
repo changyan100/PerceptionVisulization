@@ -5,6 +5,8 @@
 subscribe image from camera and find the two responding fibers in callback()
 successfully tested
 also plot the responding circle in image
+publish responding fiber index and change intensity to topic "fiber_index", with customed msg type of IniList:
+(fibernum, index1, index2, changed value1, changed value2)
 '''
 
 import rospy
@@ -41,7 +43,7 @@ class imageprocess:
     # self.image_sub = rospy.Subscriber("image_raw",Image,self.callback)
     np.set_printoptions(suppress=True)
     print("listener starts")
-    file = '2020-07-30-16_35_59 detected circle stats.csv'
+    file = '2020-07-31-15_08_46 detected circle stats.csv'
     filename = '/home/ubuntu20/catkin_ws/src/PerceptionVisulization/logs/' + file
     data_load = np.loadtxt(filename,delimiter=",", skiprows=1)
     print("file name is ", file)
@@ -66,7 +68,7 @@ class imageprocess:
 
 
   def calculatepixelvalue(self, stats_load, img):
-      row_num = stats_load.shape[1]
+      row_num = stats_load.shape[0]
       diff = []
       for i, stat in enumerate(stats_load):
         centerx = stat[3]
@@ -93,7 +95,7 @@ class imageprocess:
       max2_value = max(diff)
       print("fibers responsed are: %d and %d, intensity changes are: %d and %d"\
             %(max1_index+1, max2_index+1, max1_value, max2_value))
-      return [max1_index, max2_index, max1_value, max2_value]
+      return [row_num, max1_index, max2_index, max1_value, max2_value]
 
   def callback(self, data,args):
       stats_load = args
@@ -106,7 +108,7 @@ class imageprocess:
       
       ####calculate the two most pixelvalue changes
       respondingfiber = self.calculatepixelvalue(stats_load, cv_image)
-      index = respondingfiber[:2]
+      index = respondingfiber[1:3]
       
       ## draw the two responding circles
       cv_imageBGR = cv.cvtColor(cv_image, cv.COLOR_GRAY2BGR )
@@ -123,7 +125,7 @@ class imageprocess:
       cv.waitKey(3)
 
       msg_to_send = IntList()
-      msg_to_send.data=[int(respondingfiber[0]),int(respondingfiber[1]),int(respondingfiber[2]),int(respondingfiber[3])]
+      msg_to_send.data=[int(respondingfiber[0]),int(respondingfiber[1]),int(respondingfiber[2]),int(respondingfiber[3]),int(respondingfiber[4])]
 
       self.pub.publish(msg_to_send)
       # self.pub.publish(respondingfiber[0])

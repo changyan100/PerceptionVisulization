@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+
+'''
+Visulization GUI demo, showing wireframe plot with radom number, and showing camera image
+'''
+
 import PySimpleGUI as sg
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
