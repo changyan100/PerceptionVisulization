@@ -31,6 +31,7 @@ import cv2 as cv
 # from PIL import Image
 
 from visulization.msg import IntList
+import math
 
 datareceived = []
 cv_image = []
@@ -77,30 +78,53 @@ def gui():
     global datareceived
 
     global exitflag
-    axisrange = 5
+
     count = 0
-    griddense = 0.5
-    X = np.arange(1, axisrange, griddense)
-    Y = np.arange(1, axisrange, griddense)
-    X, Y = np.meshgrid(X, Y)
-    datalen = int((axisrange-1)/griddense)
-    Z = np.zeros([datalen, datalen])
+
+    griddense = 0.1
+    # define a small range to show spike signal nicely with cos function
+    R = 0.5
+    x_cut = np.arange(-R,R,griddense)
+    y_cut = np.arange(-R,R,griddense)
+    X_cut, Y_cut = np.meshgrid(x_cut,y_cut)
+    r = np.sqrt(X_cut**2 + Y_cut**2)
+    cut_len = int(2*R/griddense)
+    Z_cut = np.zeros([cut_len, cut_len])
+    for i in range(Z_cut.shape[0]):
+      for j in range(Z_cut.shape[1]):
+        Z_cut[i,j] = np.cos(math.pi*r[i,j]) if r[i,j]<=R else 0
+
 
     while True:
-        print("I am in while loop")
+        # print("I am in while loop")
         if datareceived:
+
           axisrange = datareceived[0]+1
+
           X = np.arange(1, axisrange, griddense)
           Y = np.arange(1, axisrange, griddense)
           X, Y = np.meshgrid(X, Y)
           datalen = int((axisrange-1)/griddense)
           Z = np.zeros([datalen, datalen])
+
           index_x = int((datareceived[1])/griddense)
           index_y = int((datareceived[2])/griddense)
-          Z[index_x, index_y] = datareceived[3]/100
+          # Z[index_x, index_y] = datareceived[3]/100
           # datareceived[1] = datareceived[1]+1
           # datareceived[2] = datareceived[2]+1
+          Z_cut_current = np.zeros([cut_len, cut_len])
+          detI = datareceived[3]/100
+          Z_cut_current = detI*Z_cut  #+detI
+          # Z_cut_current = Z_cut+detI
+          # print("index_y:", index_y)
+          # print("index_y-cut_len/2:", index_y-cut_len/2)
+
+          Z[int(index_x-cut_len/2):int(index_x+cut_len/2),int(index_y-cut_len/2):int(index_y+cut_len/2)] = Z_cut_current
+
         else:
+          X = np.arange(1, 5, 0.1)
+          Y = np.arange(1, 5, 0.1)
+          X, Y = np.meshgrid(X, Y)
           R = np.sqrt(X ** 2 + Y ** 2)
             # Z = np.sin(R+Datamatrix)
           Z = np.sin(R+count)
@@ -109,13 +133,18 @@ def gui():
         event, values = window.read(timeout=10)
         if event in ('Exit', None):
             # break
-            exitflag = 0
-            exit(69)
-            
+          exitflag = 0
+          exit(69)
+           
         if event in ('Connect', None):
-            sg.popup_ok('Successful Connection')  # Shows OK button
+          sg.popup_ok('Successful Connection')  # Shows OK button
+        
+        if datareceived:
+          window['-OUTPUT-'].update(str([datareceived[1]+1,datareceived[2]+1,datareceived[3],datareceived[4]])) ####################update displayed data here
+        else:
+          window['-OUTPUT-'].update('Loanding') ####################update displayed data here
 
-        window['-OUTPUT-'].update(str([datareceived[1]+1,datareceived[2]+1,datareceived[3],datareceived[4]])) ####################update displayed data here
+
 
         ax.cla()
         ax.grid(True)
