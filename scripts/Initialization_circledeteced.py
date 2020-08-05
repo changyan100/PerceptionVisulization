@@ -34,9 +34,9 @@ import csv
 import time
 
 
-globalflag = 0
-circlenum = 4
-low_th = 20  # filter too small spot by the area size
+# globalflag = 0
+# circlenum = 4
+low_th = 15  # filter too small spot by the area size
 high_th = 600 # filter too large connected area by the area size
 
 
@@ -220,28 +220,50 @@ class Initilization:
 
 def callback(data):
 
-    global globalflag
-    global circlenum
+    # global globalflag
+    # global circlenum
     bridge = CvBridge()
+
     try:
         # cv_image = bridge.imgmsg_to_cv2(data, "mono8")
-        cv_image = bridge.imgmsg_to_cv2(data, desired_encoding='passthrough') # output cv:mat
+      cv_image = bridge.imgmsg_to_cv2(data, desired_encoding='passthrough') # output cv:mat
         # cv_image = cv.imread("image_raw_fibers.png")
     except CvBridgeError as e:
-        print(e)
-
-    if globalflag ==0:
-      # circlenum = 25   ###########update circle num here!!!!!!!!
-     
-      # rospy.loginfo("I heard %0.6f", data.data)
-      Init = Initilization(cv_image,circlenum)
-
-    else:
-
+      print(e)
+    
+    a = input("press [I] to show image, press [C] to start initialization, press [E] to exit program: ")
+    
+    if a == 'I' or a == 'i':
       cv.namedWindow("image_raw", cv.WINDOW_NORMAL)
       cv.imshow("image_raw", cv_image) 
-      cv.waitKey(3)
-      print("press Ctrl+C to end initialization")
+      print("press Esc to continue...")
+        # cv.waitKey()
+      k = cv.waitKey(0)
+    ## k = cv2.waitKey(0) & 0xFF  # 64位机器
+      if k == 27:         # 按下esc时，退出
+        cv.destroyAllWindows()
+    elif a == 'C' or a == 'c':
+      
+      circlenum = int(input("please input fiber number:"))
+
+      Init = Initilization(cv_image,circlenum)
+    elif a == 'E' or a == 'e':
+      print("Program is aborted by the user!")
+      rospy.signal_shutdown("Program aborted!")
+    else: 
+      print("Wrong input!")
+
+
+    # if globalflag ==0:
+    #   # circlenum = 25   ###########update circle num here!!!!!!!!
+     
+    #   # rospy.loginfo("I heard %0.6f", data.data)
+    #   Init = Initilization(cv_image,circlenum)
+
+    # else:
+
+
+    #   print("press Ctrl+C to end initialization")
 
 
  
