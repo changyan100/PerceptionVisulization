@@ -36,9 +36,11 @@ import time
 
 # globalflag = 0
 # circlenum = 4
-low_th = 15  # filter too small spot by the area size
+
+low_th = 15  # filter too small spot by the area size  
 high_th = 600 # filter too large connected area by the area size
 
+######## !! to do: coding to search for good threshold to detect exact circle number
 
 class Initilization:
 
