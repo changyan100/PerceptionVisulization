@@ -99,7 +99,8 @@ class Initilization:
       if stat[4]>low_th and stat[4]<high_th:
         circle_dected[num,0] = int(stat[0] + stat[2]/2) # center_x
         circle_dected[num,1] = int(stat[1] + stat[3]/2) # center_y
-        circle_dected[num,2] = int(stat[2]/2)+1 if stat[2]>stat[3] else int(stat[3]/2)+1 # radius
+        r = int(stat[2]/2)+1 if stat[2]>stat[3] else int(stat[3]/2)+1 # radius
+        circle_dected[num,2] = r+5
         num = num+1
     print("detected circle num = %d" %num)
     # print(circle_dected)

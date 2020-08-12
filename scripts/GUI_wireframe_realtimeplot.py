@@ -34,6 +34,8 @@ import cv2 as cv
 from visulization.msg import IntList
 import math
 
+import pylab
+from mpl_toolkits.mplot3d import proj3d
 
 
 datareceived = []
@@ -111,15 +113,24 @@ def callback(data):
       Z = np.sin(R)
 
     wf = plt.axes(projection = '3d')
-    wf.plot_wireframe(X, Y, Z, rstride=1, cstride=1)
+    wf.plot_wireframe(X, Y, Z, rstride=1, cstride=1,color='green')
 
 
-    plt.annotate('local max', xyz=(index_x,index_y,Z_cut_current), xyztext=(index_x,index_y,(Z_cut_current+5)), 
-            xycoords="data", textcoords="axes fraction",
-            bbox={'facecolor':'w','pad':5}, ha="right", va="top")
+    x2, y2, _ = proj3d.proj_transform(index_x,index_y,10, wf.get_proj())
+    # x2, y2, _ = proj3d.proj_transform(index_x,index_y,detI*100, wf.get_proj())
+
+    label = pylab.annotate(
+        "this", 
+        xy = (x2, y2), xytext = (-20, 20),
+        textcoords = 'offset points', ha = 'right', va = 'bottom',
+        bbox = dict(boxstyle = 'round,pad=0.5', fc = 'yellow', alpha = 0.5),
+        arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0'))
+
 
     plt.draw()
     plt.pause(0.0000001)
+
+
 
 
 
@@ -130,6 +141,7 @@ def listener():
     # anonymous=True flag means that rospy will choose a unique
     # name for our 'listener' node so that multiple listeners can
     # run simultaneously.
+    print("listener starts")
         
     rospy.init_node('GUI_listener', anonymous=True)
     rospy.Subscriber("fiber_index", IntList, callback)
