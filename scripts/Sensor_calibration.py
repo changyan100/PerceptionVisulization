@@ -32,8 +32,8 @@ import csv
 import time
 
 
-global cv_image
-global stats_draw
+# cv_image 
+# global stats_draw
 
 low_th = 15  # filter too small spot by the area size  
 high_th = 600 # filter too large connected area by the area size
@@ -132,9 +132,9 @@ class Calibration:
         num = num+1
     print("detected circle num = %d" %num)
 
-    global stats_draw
+    # global stats_draw
 
-    stats_draw = circle_dected
+    # stats_draw = circle_dected
 
     return num
 
@@ -144,8 +144,8 @@ class Calibration:
       csvwriter.writerow(header)
       csvwriter.writerows(data)
 
-  def recordstats(self, stats,datalen):
-
+  def recordstats(self, stats):
+    datalen = stats.shape[0]
     index = np.array([range(1,datalen+1)])
     indexarr = index.reshape([datalen,1])
     stats_cut = stats[:datalen,:]
@@ -157,14 +157,14 @@ class Calibration:
     now = time.strftime("%Y-%m-%d-%H_%M_%S",time.localtime(time.time())) 
     filename="/home/ubuntu20/catkin_ws/src/PerceptionVisulization/logs/"+now+r" calibration stats.csv"
     # filename = 'detected circle stats.csv'
-    header = ["index","force(N)","pixelvalue"]
+    header = ["index","force(N)","pixelvalue..."]
     self.savedata_csv(filename, header, circle_stats)
 
 
 
 
   def callback(self, data,args):
-    global cv_image
+    # global cv_image
 
     fibernum = args
     bridge = CvBridge()
@@ -180,20 +180,70 @@ class Calibration:
       if not num == fibernum:
         print("detected fiber number does not match the input number!!! you may need modify detecting thresholds")
         print("current thresholds are:", high_th, low_th)
-        rospy.signal_shutdown("Program aborted!")
+        ## draw the detected circles
+        cv_imageBGR = cv.cvtColor(cv_image, cv.COLOR_GRAY2BGR )
+        for i, indexx in enumerate(self.circle_dected):
+          x = indexx[0]
+          y = indexx[1]
+          r = indexx[2]
+        #绘制连通区域
+          cv.circle(cv_imageBGR,(int(x),int(y)), int(r), (0,0,255))
+        #按照连通区域的索引来打上标签
+          cv.putText(cv_imageBGR, str(i+1), (int(x), int(y) + 25), cv.FONT_HERSHEY_SIMPLEX, 0.8, (255, 25, 25), 2)
+          if i>=fibernum-1:
+            break
+        cv.imshow("Image window", cv_imageBGR)
+        print("press Esc to exit...")
+
+        cv.waitKey()
+        k = cv.waitKey(0)
+        # k = cv2.waitKey(0) & 0xFF  # 64位机器
+        if k == 27:         # 按下esc时，退出
+        # if (input("press E to exit...")=='e'or'E'):
+          cv.destroyAllWindows()
+          rospy.signal_shutdown("Program aborted!")
 
       self.initflag = False
       print("Initilization finised!")
+      ## draw the detected circles
+      cv_imageBGR = cv.cvtColor(cv_image, cv.COLOR_GRAY2BGR )
+      for i, indexx in enumerate(self.circle_dected):
+        x = indexx[0]
+        y = indexx[1]
+        r = indexx[2]
+      #绘制连通区域
+        cv.circle(cv_imageBGR,(int(x),int(y)), int(r), (0,0,255))
+      #按照连通区域的索引来打上标签
+        cv.putText(cv_imageBGR, str(i+1), (int(x), int(y) + 25), cv.FONT_HERSHEY_SIMPLEX, 0.8, (255, 25, 25), 2)
+        if i>=fibernum-1:
+          break
+      cv.imshow("Image window", cv_imageBGR)
+      print("press Esc to continue...")
+      cv.waitKey()
+      k = cv.waitKey(0)
+      ## k = cv2.waitKey(0) & 0xFF  # 64位机器
+      if k == 27:         # 按下esc时，退出
+        cv.destroyAllWindows()
 
 
-    else:
+
+    else: #####init finished#############
 
       char = input("Please input loaded force or [E] to exit: ")
 
       if char=='e'or char =='E':
-        print(self.datasave)
+        # print(self.datasave)
         print("self count is: ", self.count)
-        self.recordstats(self.datasave,self.count)
+        # clip zero row of datasave
+        for i in range(self.datasave.shape[0]):
+          valuesum = sum(self.datasave[i,:])
+          if valuesum == 0:
+            data2csv = self.datasave[:i,:]
+            break
+        print(data2csv)
+
+        self.recordstats(data2csv)
+        # self.recordstats(data2csv,self.count)
         rospy.signal_shutdown("Program aborted!")
 
           # If the command entered is a int, assign this value to rPRA
@@ -210,53 +260,45 @@ class Calibration:
 
       self.count = self.count+1
 
-    # ## draw the two responding circles
-    # cv_imageBGR = cv.cvtColor(cv_image, cv.COLOR_GRAY2BGR )
-    # for i, indexx in enumerate(self.circle_dected):
-    #   x = indexx[0]
-    #   y = indexx[1]
-    #   r = indexx[2]
-    # #绘制连通区域
-    #   cv.circle(cv_imageBGR,(int(x),int(y)), int(r), (0,0,255))
-    # #按照连通区域的索引来打上标签
-    #   cv.putText(cv_imageBGR, str(indexx+1), (int(x), int(y) + 25), cv.FONT_HERSHEY_SIMPLEX, 0.8, (255, 25, 25), 2)
-    # cv.imshow("Image window", cv_imageBGR)
-    # cv.waitKey(3)
+      # print("Curret Image with force at %f" %force)
+      # ## draw the detected circles
+      # cv_imageBGR = cv.cvtColor(cv_image, cv.COLOR_GRAY2BGR )
+      # for i, indexx in enumerate(self.circle_dected):
+      #   x = indexx[0]
+      #   y = indexx[1]
+      #   r = indexx[2]
+      # #绘制连通区域
+      #   cv.circle(cv_imageBGR,(int(x),int(y)), int(r), (0,0,255))
+      # #按照连通区域的索引来打上标签
+      #   cv.putText(cv_imageBGR, str(i+1), (int(x), int(y) + 25), cv.FONT_HERSHEY_SIMPLEX, 0.8, (255, 25, 25), 2)
+      #   if i>=fibernum-1:
+      #     break
+      # cv.imshow("Image window", cv_imageBGR)
+      # # print("press Esc to continue...")
 
+      # cv.waitKey()
+      # # k = cv.waitKey(0)
+      # # ## k = cv2.waitKey(0) & 0xFF  # 64位机器
+      # # if k == 27:         # 按下esc时，退出
+      # #   cv.destroyAllWindows()
 
-def imgshow():
-  global cv_image
-  global stats_draw
-
-  while True:
-      ## draw the two responding circles
-    cv_imageBGR = cv.cvtColor(cv_image, cv.COLOR_GRAY2BGR )
-    for i, indexx in enumerate(stats_draw):
-      x = indexx[0]
-      y = indexx[1]
-      r = indexx[2]
-    #绘制连通区域
-      cv.circle(cv_imageBGR,(int(x),int(y)), int(r), (0,0,255))
-    #按照连通区域的索引来打上标签
-      cv.putText(cv_imageBGR, str(indexx+1), (int(x), int(y) + 25), cv.FONT_HERSHEY_SIMPLEX, 0.8, (255, 25, 25), 2)
-    cv.imshow("Image window", cv_imageBGR)
-    cv.waitKey(3)
-
+      # if (input("press E to exit...")=='e'or'E'):
+      #   cv.destroyAllWindows()
 
 
 def main(args):
 
-  try:
-    signal.signal(signal.SIGINT, quit)
-    signal.signal(signal.SIGTERM, quit)
-    a = threading.Thread(target = imgshow)
-    a.setDaemon(True)
-    a.start()
+  # try:
+  #   signal.signal(signal.SIGINT, quit)
+  #   signal.signal(signal.SIGTERM, quit)
+  #   a = threading.Thread(target = imgshow)
+  #   a.setDaemon(True)
+  #   a.start()
 
-    while True:
-        pass
-  except(Exception,exc):
-    print(exc)
+  #   while True:
+  #       pass
+  # except(Exception,exc):
+  #   print(exc)
 
 
   cal = Calibration()
