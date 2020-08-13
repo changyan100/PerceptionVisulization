@@ -43,7 +43,7 @@ class imageprocess:
     # self.image_sub = rospy.Subscriber("image_raw",Image,self.callback)
     np.set_printoptions(suppress=True)
     print("listener starts")
-    file = '2020-08-11-10_02_53 detected circle stats.csv'
+    file = '2020-08-13-17_10_30 detected circle stats.csv'
     filename = '/home/ubuntu20/catkin_ws/src/PerceptionVisulization/logs/' + file
     data_load = np.loadtxt(filename,delimiter=",", skiprows=1)
     print("file name is ", file)
@@ -84,18 +84,23 @@ class imageprocess:
             if math.sqrt((x-centerx)**2 + (y-centery)**2)<=radius:
               pixelvalue = pixelvalue+img[x,y]
               count = count+1
-        diff_current = stat[5]-pixelvalue
+        diff_current = abs(stat[5]-pixelvalue)
         diff.append(diff_current)
         # print("%dth fiber, init vaule %f, current value %d, diff %f" % (i, stat[5], pixelvalue, diff_current))
       ####to do: fetch the two top max value and return
       max1_index = diff.index(max(diff))  #return fiber index
       max1_value = max(diff)
-      diff.remove(max(diff))
-      max2_index = diff.index(max(diff))
-      max2_value = max(diff)
+      # diff_left = diff.remove(max(diff))
+      diff_left = []
+      for j in range(len(diff)):
+        if diff[j] != max(diff):
+          diff_left.append(diff[j])
+
+      max2_index = diff.index(max(diff_left))
+      max2_value = max(diff_left)
       print("fibers responsed are: %d and %d, intensity changes are: %d and %d"\
             %(max1_index+1, max2_index+1, max1_value, max2_value))
-      return [row_num, max1_index, max2_index, max1_value, max2_value]
+      return [row_num, max1_index+1, max2_index+1, max1_value, max2_value]
 
   def callback(self, data,args):
       stats_load = args
@@ -113,13 +118,13 @@ class imageprocess:
       ## draw the two responding circles
       cv_imageBGR = cv.cvtColor(cv_image, cv.COLOR_GRAY2BGR )
       for i, indexx in enumerate(index):
-        x = stats_load[indexx, 2]
-        y = stats_load[indexx, 3]
-        r = stats_load[indexx, 4]
+        x = stats_load[indexx-1, 2]  # fiber NO. = array index+1
+        y = stats_load[indexx-1, 3]
+        r = stats_load[indexx-1, 4]
         #绘制连通区域
         cv.circle(cv_imageBGR,(int(x),int(y)), int(r), (0,0,255))
         #按照连通区域的索引来打上标签
-        cv.putText(cv_imageBGR, str(indexx+1), (int(x), int(y) + 25), cv.FONT_HERSHEY_SIMPLEX, 0.8, (255, 25, 25), 2)
+        cv.putText(cv_imageBGR, str(indexx), (int(x), int(y) + 25), cv.FONT_HERSHEY_SIMPLEX, 0.8, (255, 25, 25), 2)
       cv.imshow("Image window", cv_imageBGR)
       
       cv.waitKey(3)

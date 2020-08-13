@@ -38,58 +38,103 @@ import pylab
 from mpl_toolkits.mplot3d import proj3d
 
 
-datareceived = []
-cv_image = []
+# datareceived = []
+# cv_image = []
 exitflag = 1
 countgloabal = 1
-
+tolorance = 500
 
 # use matplotlib plot wireframe in callback, to synchrinize data
 
-def callback(data):
+def callback(data, args):
 
-    # global cv_image
-    # # Datamatrix = data.data
-    # bridge = CvBridge()
-    # # rospy.loginfo("I heard %0.6f", data.data)
-    # try:
-    #   # cv_image = bridge.imgmsg_to_cv2(data, "bgr8")
-    #   cv_image = bridge.imgmsg_to_cv2(data, desired_encoding='passthrough') # output cv:mat
-    # except CvBridgeError as e:
-    #   print(e)
-    # cv.namedWindow("Image window", cv.WINDOW_NORMAL)
-    # cv.imshow("Image window", cv_image)
-    # cv.waitKey(3)
+  fiberfor_x = args[0]
+  fiberfor_y = args[1]
+  # print("fiber index for x axis are:", fiberfor_x)
+  # print("fiber index for y axis are:", fiberfor_y)
 
-    datareceived = data.data
-    print("I received:", datareceived)
+  global tolorance
+  # global cv_image
+  # # Datamatrix = data.data
+  # bridge = CvBridge()
+  # # rospy.loginfo("I heard %0.6f", data.data)
+  # try:
+  #   # cv_image = bridge.imgmsg_to_cv2(data, "bgr8")
+  #   cv_image = bridge.imgmsg_to_cv2(data, desired_encoding='passthrough') # output cv:mat
+  # except CvBridgeError as e:
+  #   print(e)
+  # cv.namedWindow("Image window", cv.WINDOW_NORMAL)
+  # cv.imshow("Image window", cv_image)
+  # cv.waitKey(3)
 
-    griddense = 0.1
-    # define a small range to show spike signal nicely with cos function
-    R = 0.5
-    x_cut = np.arange(-R,R,griddense)
-    y_cut = np.arange(-R,R,griddense)
-    X_cut, Y_cut = np.meshgrid(x_cut,y_cut)
-    r = np.sqrt(X_cut**2 + Y_cut**2)
-    cut_len = int(2*R/griddense)
-    Z_cut = np.zeros([cut_len, cut_len])
-    for i in range(Z_cut.shape[0]):
-      for j in range(Z_cut.shape[1]):
-        Z_cut[i,j] = np.cos(math.pi*r[i,j]) if r[i,j]<=R else 0
+  datareceived = data.data
+  #datareceived = [fibernum, index1, index2, changed value1, changed value2]
+  print("I received:", datareceived)
+
+  griddense = 0.1
+  # define a small range to show spike signal nicely with cos function
+  R = 0.5
+  x_cut = np.arange(-R,R+griddense,griddense)
+  y_cut = np.arange(-R,R+griddense,griddense)
+  X_cut, Y_cut = np.meshgrid(x_cut,y_cut)
+  r = np.sqrt(X_cut**2 + Y_cut**2)
+  cut_len = x_cut.shape[0]
+  Z_cut = np.zeros([cut_len, cut_len])
+  for i in range(Z_cut.shape[0]):
+    for j in range(Z_cut.shape[1]):
+      Z_cut[i,j] = np.cos(math.pi*r[i,j]) if r[i,j]<=R else 0
 
 
-    if datareceived:
+  if datareceived:
 
-      axisrange = datareceived[0]+1
+    
+    # axisrange = datareceived[0]+1
 
-      X = np.arange(1, axisrange, griddense)
-      Y = np.arange(1, axisrange, griddense)
-      X, Y = np.meshgrid(X, Y)
-      datalen = int((axisrange-1)/griddense)
-      Z = np.zeros([datalen, datalen])
+    # X = np.arange(1, axisrange, griddense)
+    # Y = np.arange(1, axisrange, griddense)
 
-      index_x = int((datareceived[1])/griddense)
-      index_y = int((datareceived[2])/griddense)
+    xx = np.arange(1, len(fiberfor_x)+1, griddense)
+    yy = np.arange(1, len(fiberfor_y)+1, griddense)
+
+    X, Y = np.meshgrid(xx, yy)
+    # datalen = int((axisrange-1)/griddense)
+    # Z = np.zeros([datalen, datalen])
+    Z = np.zeros([yy.shape[0],xx.shape[0]])
+    
+    if max(abs(datareceived[3]),abs(datareceived[4]))>tolorance:
+
+      # index_x = int((datareceived[1])/griddense)
+      # index_y = int((datareceived[2])/griddense)
+      if datareceived[1] in fiberfor_x:
+        index_x = fiberfor_x.index(datareceived[1])+1
+        
+      elif datareceived[1] in fiberfor_y:
+        index_y = fiberfor_y.index(datareceived[1])+1
+        
+      else:
+        print("\033[0;37;40m\tdetected fiber index doesnot match any axis\033[0m")
+
+      if datareceived[2] in fiberfor_x:
+        index_x = fiberfor_x.index(datareceived[2])+1
+        
+      elif datareceived[2] in fiberfor_y:
+        index_y = fiberfor_y.index(datareceived[2])+1
+        
+      else:
+        print("\033[0;37;40m\tdetected fiber index doesnot match any axis\033[0m")
+      
+      if 'index_x' in locals():
+        print("index_x before nomalization: ", index_x)
+        index_x = int(index_x/griddense)
+        print("index_x after nomalization: ", index_x)
+        print("index_x-cut_len/2:", index_x-cut_len/2)
+
+      if 'index_y' in locals():
+        print("index_y before nomalization: ", index_y)
+        index_y = int(index_y/griddense)
+        print("index_y after nomalization: ", index_y)
+        print("index_y-cut_len/2:", index_y-cut_len/2)
+
       # Z[index_x, index_y] = datareceived[3]/100
       # datareceived[1] = datareceived[1]+1
       # datareceived[2] = datareceived[2]+1
@@ -97,38 +142,37 @@ def callback(data):
       detI = datareceived[3]/100
       Z_cut_current = detI*Z_cut  #+detI
       # Z_cut_current = Z_cut+detI
-      # print("index_y:", index_y)
-      # print("index_y-cut_len/2:", index_y-cut_len/2)
 
-      Z[int(index_x-cut_len/2):int(index_x+cut_len/2),int(index_y-cut_len/2):int(index_y+cut_len/2)] = Z_cut_current
+      if 'index_x' in locals() and 'index_y' in locals():
+        Z[int(index_x-cut_len/2):int(index_x+cut_len/2),int(index_y-cut_len/2):int(index_y+cut_len/2)] = Z_cut_current
 
-    
+  
 
-    else:
-      X = np.arange(1, 5, 0.1)
-      Y = np.arange(1, 5, 0.1)
-      X, Y = np.meshgrid(X, Y)
-      R = np.sqrt(X ** 2 + Y ** 2)
-        # Z = np.sin(R+Datamatrix)
-      Z = np.sin(R)
+  else: #no data received from iamge process
+    X = np.arange(1, 5, 0.1)
+    Y = np.arange(1, 5, 0.1)
+    X, Y = np.meshgrid(X, Y)
+    R = np.sqrt(X ** 2 + Y ** 2)
+      # Z = np.sin(R+Datamatrix)
+    Z = np.sin(R)
 
-    wf = plt.axes(projection = '3d')
-    wf.plot_wireframe(X, Y, Z, rstride=1, cstride=1,color='green')
-
-
-    x2, y2, _ = proj3d.proj_transform(index_x,index_y,10, wf.get_proj())
-    # x2, y2, _ = proj3d.proj_transform(index_x,index_y,detI*100, wf.get_proj())
-
-    label = pylab.annotate(
-        "this", 
-        xy = (x2, y2), xytext = (-20, 20),
-        textcoords = 'offset points', ha = 'right', va = 'bottom',
-        bbox = dict(boxstyle = 'round,pad=0.5', fc = 'yellow', alpha = 0.5),
-        arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0'))
+  wf = plt.axes(projection = '3d')
+  wf.plot_wireframe(X, Y, Z, rstride=1, cstride=1,color='green')
 
 
-    plt.draw()
-    plt.pause(0.0000001)
+  # x2, y2, _ = proj3d.proj_transform(index_x,index_y,10, wf.get_proj())
+  # x2, y2, _ = proj3d.proj_transform(index_x,index_y,detI*100, wf.get_proj())
+
+  # label = pylab.annotate(
+  #     "this", 
+  #     xy = (x2, y2), xytext = (-20, 20),
+  #     textcoords = 'offset points', ha = 'right', va = 'bottom',
+  #     bbox = dict(boxstyle = 'round,pad=0.5', fc = 'yellow', alpha = 0.5),
+  #     arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0'))
+
+
+  plt.draw()
+  plt.pause(0.0000001)
 
 
 
@@ -136,19 +180,38 @@ def callback(data):
 
 def listener():
 
-    # In ROS, nodes are uniquely named. If two nodes with the same
-    # name are launched, the previous one is kicked off. The
-    # anonymous=True flag means that rospy will choose a unique
-    # name for our 'listener' node so that multiple listeners can
-    # run simultaneously.
-    print("listener starts")
-        
-    rospy.init_node('GUI_listener', anonymous=True)
-    rospy.Subscriber("fiber_index", IntList, callback)
-    # spin() simply keeps python from exiting until this node is stopped
-    plt.ion()
-    plt.show()
-    rospy.spin()
+  # In ROS, nodes are uniquely named. If two nodes with the same
+  # name are launched, the previous one is kicked off. The
+  # anonymous=True flag means that rospy will choose a unique
+  # name for our 'listener' node so that multiple listeners can
+  # run simultaneously.
+  print("Program starts")
+  fiberfor_x = []
+  fiberfor_y = []
+  while True:
+    char = input("Please input fiber index for X axis or [E/e] to continue: ")
+    if char == 'e' or char == 'E':
+      break
+    else:
+      fiberfor_x.append(int(char))
+
+  print("fiber index for x axis are:", fiberfor_x)
+
+  while True:
+    char = input("Please input fiber index for Y axis or [E/e] to continue: ")
+    if char == 'e' or char == 'E':
+      break
+    else:
+      fiberfor_y.append(int(char))
+  
+
+  
+  rospy.init_node('GUI_listener', anonymous=True)
+  rospy.Subscriber("fiber_index", IntList, callback, (fiberfor_x, fiberfor_y))
+  # spin() simply keeps python from exiting until this node is stopped
+  plt.ion()
+  plt.show()
+  rospy.spin()
 
 
 

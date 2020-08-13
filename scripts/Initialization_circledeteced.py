@@ -37,7 +37,7 @@ import time
 # globalflag = 0
 # circlenum = 4
 
-low_th = 15  # filter too small spot by the area size  
+low_th = 10  # filter too small spot by the area size  
 high_th = 600 # filter too large connected area by the area size
 
 ######## !! to do: coding to search for good threshold to detect exact circle number
@@ -100,7 +100,7 @@ class Initilization:
         circle_dected[num,0] = int(stat[0] + stat[2]/2) # center_x
         circle_dected[num,1] = int(stat[1] + stat[3]/2) # center_y
         r = int(stat[2]/2)+1 if stat[2]>stat[3] else int(stat[3]/2)+1 # radius
-        circle_dected[num,2] = r+5
+        circle_dected[num,2] = r + 5  #-----------------manually enlarge the circle by 5 pixel------------------
         num = num+1
     print("detected circle num = %d" %num)
     # print(circle_dected)
