@@ -37,13 +37,37 @@ from visulization.msg import IntList
 class imageprocess:
 
   def __init__(self):
+
+
+    print("Program starts")
+    self.fiberfor_x = []
+    self.fiberfor_y = []
+    while True:
+      char = input("Please input fiber index for X axis or [E/e] to continue: ")
+      if char == 'e' or char == 'E':
+        break
+      else:
+        self.fiberfor_x.append(int(char))
+
+    print("fiber index for x axis are:", self.fiberfor_x)
+
+    while True:
+      char = input("Please input fiber index for Y axis or [E/e] to continue: ")
+      if char == 'e' or char == 'E':
+        break
+      else:
+        self.fiberfor_y.append(int(char))
+  
+    print("fiber index for y axis are:", self.fiberfor_y)
+    
+
     # self.image_pub = rospy.Publisher("image_topic_2",Image)
 
     # self.bridge = CvBridge()
     # self.image_sub = rospy.Subscriber("image_raw",Image,self.callback)
     np.set_printoptions(suppress=True)
     print("listener starts")
-    file = '2020-08-13-17_10_30 detected circle stats.csv'
+    file = '2020-08-14-09_34_45 detected circle stats.csv'
     filename = '/home/ubuntu20/catkin_ws/src/PerceptionVisulization/logs/' + file
     data_load = np.loadtxt(filename,delimiter=",", skiprows=1)
     print("file name is ", file)
@@ -87,20 +111,50 @@ class imageprocess:
         diff_current = abs(stat[5]-pixelvalue)
         diff.append(diff_current)
         # print("%dth fiber, init vaule %f, current value %d, diff %f" % (i, stat[5], pixelvalue, diff_current))
-      ####to do: fetch the two top max value and return
-      max1_index = diff.index(max(diff))  #return fiber index
-      max1_value = max(diff)
-      # diff_left = diff.remove(max(diff))
-      diff_left = []
-      for j in range(len(diff)):
-        if diff[j] != max(diff):
-          diff_left.append(diff[j])
+      ####fetch the two top max value and return the index, in x and y axis
+      diff_orign = diff.copy()
+      diff.sort(reverse = True) #descending order
+      diff_sorted_index = []
+      for i, element in enumerate(diff):
+        diff_sorted_index.append(diff_orign.index(element)) #caution: if diff has identical elements, then this index could be wrong
 
-      max2_index = diff.index(max(diff_left))
-      max2_value = max(diff_left)
-      print("fibers responsed are: %d and %d, intensity changes are: %d and %d"\
-            %(max1_index+1, max2_index+1, max1_value, max2_value))
-      return [row_num, max1_index+1, max2_index+1, max1_value, max2_value]
+
+      x_flag = True
+      y_flag = True
+
+      for i, element in enumerate(diff_sorted_index):
+        element = element+1
+        if x_flag == False and y_flag == False:
+          break
+        if (x_flag == True) and (element in self.fiberfor_x):
+          index_x = self.fiberfor_x.index(element)+1
+          x_flag = False
+          print("Fiber No. for index_x is: ", element)
+          fiberNo_x = element
+        if (y_flag == True) and (element in self.fiberfor_y):
+          index_y = self.fiberfor_y.index(element)+1
+          y_flag = False          
+          print("Fiber No. for index_y is: ", element)
+          fiberNo_y = element
+
+
+      # max1_index = diff.index(max(diff))  #return fiber index
+      # max1_value = max(diff)
+      # # diff_left = diff.remove(max(diff))
+      # diff_left = []
+      # for j in range(len(diff)):
+      #   if diff[j] != max(diff):
+      #     diff_left.append(diff[j])
+
+      # max2_index = diff.index(max(diff_left))
+      # max2_value = max(diff_left)
+      # print("fibers responsed are: %d and %d, intensity changes are: %d and %d"\
+      #       %(max1_index+1, max2_index+1, max1_value, max2_value))
+      # return [row_num, max1_index+1, max2_index+1, max1_value, max2_value]
+
+      print("index(x,y) are: (%d, %d), intensity changes are: %d"\
+            %(index_x, index_y, diff[0]))
+      return [row_num, index_x, index_y, diff[0],fiberNo_x, fiberNo_y]
 
   def callback(self, data,args):
       stats_load = args
@@ -113,7 +167,7 @@ class imageprocess:
       
       ####calculate the two most pixelvalue changes
       respondingfiber = self.calculatepixelvalue(stats_load, cv_image)
-      index = respondingfiber[1:3]
+      index = respondingfiber[-2:]
       
       ## draw the two responding circles
       cv_imageBGR = cv.cvtColor(cv_image, cv.COLOR_GRAY2BGR )
@@ -130,7 +184,7 @@ class imageprocess:
       cv.waitKey(3)
 
       msg_to_send = IntList()
-      msg_to_send.data=[int(respondingfiber[0]),int(respondingfiber[1]),int(respondingfiber[2]),int(respondingfiber[3]),int(respondingfiber[4])]
+      msg_to_send.data=[int(respondingfiber[0]),int(respondingfiber[1]),int(respondingfiber[2]),int(respondingfiber[3]),len(self.fiberfor_x), len(self.fiberfor_y)]
 
       self.pub.publish(msg_to_send)
       # self.pub.publish(respondingfiber[0])
