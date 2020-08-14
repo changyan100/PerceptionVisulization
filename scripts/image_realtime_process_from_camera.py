@@ -67,7 +67,7 @@ class imageprocess:
     # self.image_sub = rospy.Subscriber("image_raw",Image,self.callback)
     np.set_printoptions(suppress=True)
     print("listener starts")
-    file = '2020-08-14-09_34_45 detected circle stats.csv'
+    file = '2020-08-14-15_27_07 detected circle stats.csv'
     filename = '/home/ubuntu20/catkin_ws/src/PerceptionVisulization/logs/' + file
     data_load = np.loadtxt(filename,delimiter=",", skiprows=1)
     print("file name is ", file)

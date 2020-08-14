@@ -42,7 +42,7 @@ from mpl_toolkits.mplot3d import proj3d
 # cv_image = []
 exitflag = 1
 countgloabal = 1
-tolorance = 500
+tolorance = 5000
 
 # use matplotlib plot wireframe in callback, to synchrinize data
 
@@ -169,20 +169,22 @@ def callback(data):
     Z = np.sin(R)
 
   wf = plt.axes(projection = '3d')
-  wf.plot_wireframe(X, Y, Z, rstride=1, cstride=1,color='green')
+  wf.plot_wireframe(X, Y, Z, rstride=1, cstride=1)
 
-
-  # x2, y2, _ = proj3d.proj_transform(index_x,index_y,10, wf.get_proj())
-  # x2, y2, _ = proj3d.proj_transform(index_x,index_y,detI*100, wf.get_proj())
-
-  # label = pylab.annotate(
-  #     "this", 
-  #     xy = (x2, y2), xytext = (-20, 20),
-  #     textcoords = 'offset points', ha = 'right', va = 'bottom',
-  #     bbox = dict(boxstyle = 'round,pad=0.5', fc = 'yellow', alpha = 0.5),
-  #     arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0'))
+  if 'index_x' in locals() and 'index_y' in locals():
+    x2, y2, _ = proj3d.proj_transform(yy[-index_y],xx[index_x],detI-1, wf.get_proj())
+    # x2, y2, _ = proj3d.proj_transform(index_x,index_y,detI*100, wf.get_proj())
+    display = 'coordinates = '+str((datareceived[1], datareceived[2]))
+    label = pylab.annotate(
+        display, 
+        xy = (x2, y2), xytext = (-20, 20),
+        textcoords = 'offset points', ha = 'right', va = 'bottom',
+        bbox = dict(boxstyle = 'round,pad=0.5', fc = 'yellow', alpha = 0.5),
+        arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0'))
 
   plt.gca().invert_xaxis()
+  # wf.zlim(0, 15) # 或 xlim((left, right))
+  wf.set_zlim3d(0,11)
 
   plt.draw()
   plt.pause(0.0000001)
