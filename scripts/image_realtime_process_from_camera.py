@@ -67,7 +67,7 @@ class imageprocess:
     # self.image_sub = rospy.Subscriber("image_raw",Image,self.callback)
     np.set_printoptions(suppress=True)
     print("listener starts")
-    file = '2020-08-14-15_27_07 detected circle stats.csv'
+    file = '2020-08-17-10_14_53 detected circle stats.csv'
     filename = '/home/ubuntu20/catkin_ws/src/PerceptionVisulization/logs/' + file
     data_load = np.loadtxt(filename,delimiter=",", skiprows=1)
     print("file name is ", file)
@@ -88,7 +88,7 @@ class imageprocess:
       # rospy.spin()
     else:
       print("Program aborted! Please update filename in image_realtime_process_from_camera.py file")
-
+      rospy.signal_shutdown("Program aborted!")
 
 
   def calculatepixelvalue(self, stats_load, img):

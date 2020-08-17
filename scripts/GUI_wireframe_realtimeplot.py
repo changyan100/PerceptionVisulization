@@ -42,7 +42,7 @@ from mpl_toolkits.mplot3d import proj3d
 # cv_image = []
 exitflag = 1
 countgloabal = 1
-tolorance = 5000
+tolorance = 6000
 
 # use matplotlib plot wireframe in callback, to synchrinize data
 
